@@ -701,6 +701,7 @@ struct clusterState;
 #undef hz
 #endif
 
+// redis服务端数据结构
 struct redisServer {
     /* General */
     pid_t pid;                  /* Main process pid. */
