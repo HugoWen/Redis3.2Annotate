@@ -1178,6 +1178,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     clientsCron();
 
     /* Handle background operations on Redis databases. */
+    /* 后台处理 Redis 数据库各种操作 */
     databasesCron();
 
     /* Start a scheduled AOF rewrite if this was requested by the user while
@@ -1223,6 +1224,10 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     } else {
         /* If there is not a background saving/rewrite in progress check if
          * we have to save/rewrite now */
+        /**
+         * 如果没有 BGSAVE 和 BGREWRITEAOF 在执行，那么检查是否需要执行
+         */
+        // 遍历保存条件
          for (j = 0; j < server.saveparamslen; j++) {
             struct saveparam *sp = server.saveparams+j;
 
@@ -1230,6 +1235,9 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
              * the given amount of seconds, and if the latest bgsave was
              * successful or if, in case of an error, at least
              * CONFIG_BGSAVE_RETRY_DELAY seconds already elapsed. */
+             /**
+              * 满足 SAVE 条件（一定时间内达到操作次数，并且BGSAVE延时已过，并且上次BGSAVE完成）
+              */
             if (server.dirty >= sp->changes &&
                 server.unixtime-server.lastsave > sp->seconds &&
                 (server.unixtime-server.lastbgsave_try >
@@ -1238,6 +1246,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
             {
                 serverLog(LL_NOTICE,"%d changes in %d seconds. Saving...",
                     sp->changes, (int)sp->seconds);
+                // 执行 BGSAVE， 退出循环
                 rdbSaveBackground(server.rdb_filename);
                 break;
             }
@@ -1458,12 +1467,16 @@ void createSharedObjects(void) {
     shared.maxstring = createStringObject("maxstring",9);
 }
 
+/**
+ * 初始化Server配置参数
+ */
 void initServerConfig(void) {
     int j;
 
     getRandomHexChars(server.runid,CONFIG_RUN_ID_SIZE);
     server.configfile = NULL;
     server.executable = NULL;
+    // serverCron() 1s执行默认10次
     server.hz = CONFIG_DEFAULT_HZ;
     server.runid[CONFIG_RUN_ID_SIZE] = '\0';
     server.arch_bits = (sizeof(long) == 8) ? 64 : 32;
@@ -1548,6 +1561,7 @@ void initServerConfig(void) {
     server.lruclock = getLRUClock();
     resetServerSaveParams();
 
+    // 默认 SAVE 条件 1小时1次，5分钟100次，1分钟10000次
     appendServerSaveParams(60*60,1);  /* save after 1 hour and 1 change */
     appendServerSaveParams(300,100);  /* save after 5 minutes and 100 changes */
     appendServerSaveParams(60,10000); /* save after 1 minute and 10000 changes */

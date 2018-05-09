@@ -147,6 +147,9 @@ void appendServerSaveParams(time_t seconds, int changes) {
     server.saveparamslen++;
 }
 
+/**
+ * 重置Redis Server Save条件
+ */
 void resetServerSaveParams(void) {
     zfree(server.saveparams);
     server.saveparams = NULL;
