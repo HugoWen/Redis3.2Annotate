@@ -501,14 +501,22 @@ struct evictionPoolEntry {
 /* Redis database representation. There are multiple databases identified
  * by integers from 0 (the default database) up to the max configured
  * database. The database number is the 'id' field in the structure. */
+/**
+ * Redis数据库描述。共定义有从0号（默认选择数据库）到最大号多个数据库，数据库几号的数字就是数据结构里的id
+ */
 typedef struct redisDb {
+    // 保存数据库所有键值对
     dict *dict;                 /* The keyspace for this DB */
+    // 每个key的过期时间，字典结构，键为key，值为过期时间unix时间戳
     dict *expires;              /* Timeout of keys with a timeout set */
+    //
     dict *blocking_keys;        /* Keys with clients waiting for data (BLPOP) */
     dict *ready_keys;           /* Blocked keys that received a PUSH */
     dict *watched_keys;         /* WATCHED keys for MULTI/EXEC CAS */
     struct evictionPoolEntry *eviction_pool;    /* Eviction pool of keys */
+    // 数据库id，即数据库编号
     int id;                     /* Database ID */
+    // 平均ttl（过期时间），仅统计用
     long long avg_ttl;          /* Average TTL, just for stats */
 } redisDb;
 
@@ -705,10 +713,12 @@ struct clusterState;
 struct redisServer {
     /* General */
     pid_t pid;                  /* Main process pid. */
+    // 配置文件的绝对路径
     char *configfile;           /* Absolute config file path, or NULL */
     char *executable;           /* Absolute executable file path. */
     char **exec_argv;           /* Executable argv vector (copy). */
     int hz;                     /* serverCron() calls frequency in hertz */
+    // 数据库结构
     redisDb *db;
     dict *commands;             /* Command table */
     dict *orig_commands;        /* Command table before command renaming. */
@@ -734,6 +744,7 @@ struct redisServer {
     int sofd;                   /* Unix socket file descriptor */
     int cfd[CONFIG_BINDADDR_MAX];/* Cluster bus listening socket */
     int cfd_count;              /* Used slots in cfd[] */
+    // 一个链表，保存所有客户端状态结构
     list *clients;              /* List of active clients */
     list *clients_to_close;     /* Clients to close asynchronously */
     list *clients_pending_write; /* There is to write or install handler. */
@@ -831,21 +842,35 @@ struct redisServer {
     int aof_stop_sending_diff;     /* If true stop sending accumulated diffs
                                       to child process. */
     sds aof_child_diff;             /* AOF diff accumulator child side. */
+
     /* RDB persistence */
+    /* RDB 持久化 */
+
+    // 上次SAVE后数据库被修改的次数，包括增加、修改、删除
     long long dirty;                /* Changes to DB from the last save */
+    // BGSAVE执行前数据库被修改的次数
     long long dirty_before_bgsave;  /* Used to restore dirty on failed BGSAVE */
+    // 负责执行BGSAVE的子进程id，没在执行BGSAVE时设为-1
     pid_t rdb_child_pid;            /* PID of RDB saving child */
+    // SAVE触发条件结构：时间=>次数，即多少时间内触发了多少次操作即开始执行SAVE操作
     struct saveparam *saveparams;   /* Save points array for RDB */
+    // 触发条件个数
     int saveparamslen;              /* Number of saving points */
+    // RDB文件名
     char *rdb_filename;             /* Name of RDB file */
     int rdb_compression;            /* Use compression in RDB? */
     int rdb_checksum;               /* Use RDB checksum? */
+    // 最后一次完成SAVE的时间戳
     time_t lastsave;                /* Unix time of last successful save */
+    // 最后一次尝试BGSAVE的时间戳
     time_t lastbgsave_try;          /* Unix time of last attempted bgsave */
+    // 最后一次SAVE执行花费的时间
     time_t rdb_save_time_last;      /* Time used by last RDB save run. */
+    // 最后一次开始执行SAVE的时间
     time_t rdb_save_time_start;     /* Current RDB save start time. */
     int rdb_bgsave_scheduled;       /* BGSAVE when possible if true. */
     int rdb_child_type;             /* Type of save by active child. */
+    // 最后一次执行 BGSAVE 的状态 C_OK 或者 C_ERR
     int lastbgsave_status;          /* C_OK or C_ERR */
     int stop_writes_on_bgsave_err;  /* Don't allow writes if can't BGSAVE */
     int rdb_pipe_write_result_to_parent; /* RDB pipes used to return the state */
