@@ -28,6 +28,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * 双端链表结构定义
+ */
+
 #ifndef __ADLIST_H__
 #define __ADLIST_H__
 

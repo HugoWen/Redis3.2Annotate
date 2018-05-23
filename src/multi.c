@@ -27,6 +27,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * Redis的事务实现
+ */
+
 #include "server.h"
 
 /* ================================ MULTI/EXEC ============================== */

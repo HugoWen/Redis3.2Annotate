@@ -28,6 +28,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * 双端链表结构实现
+ */
+
 
 #include <stdlib.h>
 #include "adlist.h"
